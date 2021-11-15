@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, Paper, Typography} from "@mui/material";
+import {Box, Paper, Typography} from "@mui/material";
 import {useParams} from "react-router-dom";
 
 export default function TestDetails() {
@@ -23,7 +23,7 @@ export default function TestDetails() {
         }
 
         fetchTestResults()
-    }, [jobUuid]);
+    }, [jobUuid, testName]);
 
     return(
         <Box margin={5}>

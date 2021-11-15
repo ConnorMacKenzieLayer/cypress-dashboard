@@ -32,26 +32,6 @@ app.get('/:jobUuid/test/:testName', function(req, res, next){
     res.send(formattedResults)
 });
 
-app.get('/:jobUuid/ssh', function(req, res, next){
-    let conn = new Client();
-
-    conn.on('ready', () => {
-        console.log('Client :: ready');
-        conn.sftp((err, sftp) => {
-            if (err) throw err;
-            sftp.readdir('foo', (err, list) => {
-                if (err) throw err;
-                console.dir(list);
-                conn.end();
-            });
-        });
-    }).connect({
-        host: `${req.params.jobUuid}.lan`,
-        username: 'root',
-        password: 'password'
-    });
-});
-
 app.listen(port, () => {
     console.log(`Cypress Dashboard listening at http://localhost:${port}`)
 })
@@ -70,6 +50,26 @@ function getTestSuiteResults(testResultsDirectory) {
     });
 
     return json;
+}
+
+function copyDirectory(directory) {
+    let conn = new Client();
+
+    conn.on('ready', () => {
+        console.log('Client :: ready');
+        conn.sftp((err, sftp) => {
+            if (err) throw err;
+            sftp.readdir('/cypress', (err, list) => {
+                if (err) throw err;
+                console.dir(list);
+                conn.end();
+            });
+        });
+    }).connect({
+        host: `${req.params.jobUuid}.lan`,
+        username: 'root',
+        password: 'password'
+    });
 }
 
 function formatTestSuiteResults(testSuiteResults) {
