@@ -32,6 +32,10 @@ app.get('/:jobUuid/test/:testName', function(req, res, next){
     res.send(formattedResults)
 });
 
+app.get('*', function(req, res) {
+    res.sendFile('index.html', {root: FRONT_END_PATH});
+});
+
 app.listen(port, () => {
     console.log(`Cypress Dashboard listening at http://localhost:${port}`)
 })
