@@ -16,11 +16,12 @@ app.get('/', (req, res) => {
 })
 
 app.get('/:jobUuid/test-list', function(req, res, next){
-    const testSuiteResultsDirectory = '/home/connor/projects/docker-server/cypress/results/';
-    let testSuiteResults = getTestSuiteResults(testSuiteResultsDirectory)
-    let formattedResults = formatTestSuiteResults(testSuiteResults)
+    // const testSuiteResultsDirectory = '/home/connor/projects/docker-server/cypress/results/';
+    // let testSuiteResults = getTestSuiteResults(testSuiteResultsDirectory)
+    // let formattedResults = formatTestSuiteResults(testSuiteResults)
 
-    res.send(formattedResults)
+    copyDirectory('/cypress', req.params.jobUuid)
+    res.send({})
 });
 
 app.get('/:jobUuid/test/:testName', function(req, res, next){
@@ -29,7 +30,7 @@ app.get('/:jobUuid/test/:testName', function(req, res, next){
     let formattedResults = formatTestResults(testSuiteResults, req.params.testName)
 
 
-    res.send(formattedResults)
+    res.send({})
 });
 
 app.get('*', function(req, res) {
@@ -56,21 +57,27 @@ function getTestSuiteResults(testResultsDirectory) {
     return json;
 }
 
-function copyDirectory(directory) {
+function copyDirectory(directory, jobUuid) {
     let conn = new Client();
 
     conn.on('ready', () => {
         console.log('Client :: ready');
         conn.sftp((err, sftp) => {
-            if (err) throw err;
-            sftp.readdir('/cypress', (err, list) => {
-                if (err) throw err;
-                console.dir(list);
+            if (err) {
+                console.error(err);
+                return;
+            }
+            sftp.readdir('cypress', (err, list) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log(list);
                 conn.end();
             });
         });
     }).connect({
-        host: `${req.params.jobUuid}.lan`,
+        host: `${jobUuid}.lan`,
         username: 'root',
         password: 'password'
     });
