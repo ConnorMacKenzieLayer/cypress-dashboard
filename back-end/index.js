@@ -7,6 +7,9 @@ const app = express()
 const port = 3001
 const FRONT_END_PATH = path.join(__dirname, '..', 'front-end', 'build')
 
+const cypressDest = '/tmp/cypress';
+const cypressSrc = 'cypress';
+
 app.use(express.json());
 
 app.use(express.static(FRONT_END_PATH));
@@ -16,21 +19,19 @@ app.get('/', (req, res) => {
 })
 
 app.get('/:jobUuid/test-list', function(req, res, next){
-    // const testSuiteResultsDirectory = '/home/connor/projects/docker-server/cypress/results/';
-    // let testSuiteResults = getTestSuiteResults(testSuiteResultsDirectory)
-    // let formattedResults = formatTestSuiteResults(testSuiteResults)
-
-    copyDirectory(req.params.jobUuid)
-    res.send({})
+    let formattedResults = {}
+    copyDirectory(req.params.jobUuid).then(() => {
+        let testSuiteResults = getTestSuiteResults(cypressDest + '/results/')
+        formattedResults = formatTestSuiteResults(testSuiteResults)
+    }).finally(() => res.send(formattedResults))
 });
 
-app.get('/:jobUuid/test/:testName', function(req, res, next){
-    const testSuiteResultsDirectory = '/home/connor/projects/docker-server/cypress/results/';
-    let testSuiteResults = getTestSuiteResults(testSuiteResultsDirectory)
-    let formattedResults = formatTestResults(testSuiteResults, req.params.testName)
-
-
-    res.send({})
+app.get('/:jobUuid/test-details/:testName', function(req, res, next){
+    let formattedResults = {}
+    copyDirectory(req.params.jobUuid).then(() => {
+        let testSuiteResults = getTestSuiteResults(cypressDest + '/results/')
+        formattedResults = formatTestResults(testSuiteResults, req.params.testName)
+    }).finally(() => res.send(formattedResults))
 });
 
 app.get('*', function(req, res) {
@@ -57,10 +58,8 @@ function getTestSuiteResults(testResultsDirectory) {
     return json;
 }
 
-async function copy(jobUuid) {
+async function copyDirectory(jobUuid) {
     const sftp = new Client();
-    const dst = '/tmp';
-    const src = 'cypress';
 
     try {
         await sftp.connect({
@@ -71,15 +70,15 @@ async function copy(jobUuid) {
         sftp.on('download', info => {
             console.log(`Listener: Download ${info.source}`);
         });
-        let rslt = await sftp.downloadDir(src, dst);
-        return rslt;
+        let result = await sftp.downloadDir(cypressSrc, cypressDest);
+        return result;
     } finally {
         await sftp.end();
     }
 }
 
-function copyDirectory(jobUuid) {
-    copy(jobUuid)
+function copyTestResults(jobUuid) {
+    copyDirectory(jobUuid)
         .then(msg => {
             console.log(msg);
         })

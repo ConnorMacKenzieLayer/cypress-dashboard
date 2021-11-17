@@ -12,7 +12,7 @@ export default function TestDetails() {
     useEffect(() => {
         async function fetchTestResults() {
             try {
-                const res = await fetch(`/${jobUuid}/test/${testName}`)
+                const res = await fetch(`/${jobUuid}/test-details/${testName}`)
                 const result = await res.json()
                 setTestResults(result)
                 setError(false)
