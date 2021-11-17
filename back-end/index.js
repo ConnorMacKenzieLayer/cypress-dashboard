@@ -1,6 +1,6 @@
 const path = require('path');
 const express = require('express');
-const { Client } = require('ssh2');
+const Client = require('ssh2-sftp-client');
 const fs = require('fs');
 const parser = require('xml2json');
 const app = express()
@@ -20,7 +20,7 @@ app.get('/:jobUuid/test-list', function(req, res, next){
     // let testSuiteResults = getTestSuiteResults(testSuiteResultsDirectory)
     // let formattedResults = formatTestSuiteResults(testSuiteResults)
 
-    copyDirectory('/cypress', req.params.jobUuid)
+    copyDirectory(req.params.jobUuid)
     res.send({})
 });
 
@@ -57,30 +57,35 @@ function getTestSuiteResults(testResultsDirectory) {
     return json;
 }
 
-function copyDirectory(directory, jobUuid) {
-    let conn = new Client();
+async function copy(jobUuid) {
+    const sftp = new Client();
+    const dst = '/tmp';
+    const src = 'cypress';
 
-    conn.on('ready', () => {
-        console.log('Client :: ready');
-        conn.sftp((err, sftp) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            sftp.readdir('cypress', (err, list) => {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                console.log(list);
-                conn.end();
-            });
+    try {
+        await sftp.connect({
+            host: `${jobUuid}.lan`,
+            username: 'root',
+            password: 'password'
         });
-    }).connect({
-        host: `${jobUuid}.lan`,
-        username: 'root',
-        password: 'password'
-    });
+        sftp.on('download', info => {
+            console.log(`Listener: Download ${info.source}`);
+        });
+        let rslt = await sftp.downloadDir(src, dst);
+        return rslt;
+    } finally {
+        await sftp.end();
+    }
+}
+
+function copyDirectory(jobUuid) {
+    copy(jobUuid)
+        .then(msg => {
+            console.log(msg);
+        })
+        .catch(err => {
+            console.log(`main error: ${err.message}`);
+        });
 }
 
 function formatTestSuiteResults(testSuiteResults) {
