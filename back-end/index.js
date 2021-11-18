@@ -51,7 +51,13 @@ function getTestSuiteResults(testResultsDirectory) {
     });
 
     testResultsPaths.forEach(fileName => {
-        let data = fs.readFileSync(fileName)
+        let data;
+        try {
+            data = fs.readFileSync(fileName)
+        } catch (err) {
+            console.error(err);
+            return;
+        }
         let results = parser.toJson(data, {object: true});
         json.push(results)
     });
