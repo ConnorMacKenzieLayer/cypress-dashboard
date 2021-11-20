@@ -30,37 +30,88 @@ export default function TestList() {
             <Paper>
                 {
                     (testResults && testResults.totalInfo) ? <>
-                        <Box margin={3} display="flex" flexDirection="row" justifyContent="center">
-                            <Box margin={3}>
-                                Passed: {testResults.totalInfo.passed}
+                        <Box margin={3} display="flex" flexDirection="row">
+                            <Box display="flex" width="30vw"/>
+                            <Box
+                                display="flex"
+                                flexGrow={1}
+                                justifyContent="center"
+                                flexDirection="row"
+                            >
+                                <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    sx={{
+                                        width: 300,
+                                        height: 150,
+                                        backgroundColor: '#258271',
+                                        borderRadius: 5
+                                    }}
+                                >
+                                    <Typography style={{color: "#FFFFFF"}} variant="h4">
+                                        Passed: {testResults.totalInfo.passed}
+                                    </Typography>
+                                </Box>
+                                <Box
+                                    marginLeft={5}
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    sx={{
+                                        width: 300,
+                                        height: 150,
+                                        backgroundColor: '#C65858',
+                                        borderRadius: 5
+                                    }}
+                                >
+                                    <Typography style={{color: "#FFFFFF"}} variant="h4">
+                                        Failures: {testResults.totalInfo.failures}
+                                    </Typography>
+                                </Box>
                             </Box>
-                            <Box margin={3}>
-                                Failures: {testResults.totalInfo.failures}
-                            </Box>
+                            <Box display="flex" width="30vw"/>
                         </Box>
                         <Box display="flex" flexDirection="column">
                             {testResults.testSuites.map(testSuite => {
                                 return(
-                                    <Box key={testSuite.name} margin={3} display="flex" flexDirection="row" justifyContent="space-between">
-                                        <Box>
+                                    <Box
+                                        key={testSuite.name}
+                                        margin={2}
+                                        display="flex"
+                                        flexDirection="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        padding={3}
+                                        sx={{
+                                            border: 1,
+                                            borderLeft: 10,
+                                            borderColor: testSuite.failures === 0 ? '#258271' : '#C65858'
+                                        }}
+                                    >
+                                        <Box display="flex" width="25%">
                                             <Typography>
                                                 {testSuite.name}
                                             </Typography>
                                         </Box>
-                                        <Box>
+                                        <Box display="flex" width="25%" justifyContent="right">
                                             <Typography>
                                                 Passed: {testSuite.passed}
                                             </Typography>
                                         </Box>
-                                        <Box>
+                                        <Box display="flex" width="25%" justifyContent="right">
                                             <Typography>
                                                 Failures: {testSuite.failures}
                                             </Typography>
                                         </Box>
-                                        <Box>
+                                        <Box display="flex" width="25%" justifyContent="right">
                                             <Button
                                                 variant="outlined"
-                                                color="primary"
+                                                style={{
+                                                    color: testSuite.failures === 0 ? '#258271' : '#C65858',
+                                                    borderColor: testSuite.failures === 0 ? '#258271' : '#C65858',
+                                                    textTransform: "none"
+                                                }}
                                                 href={`/${jobUuid}/test/${testSuite.name}`}
                                             >
                                                 View Details
