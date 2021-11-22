@@ -4,7 +4,7 @@ import {Box} from "@mui/material";
 export default function NotFound() {
     return(
         <Box>
-            job not found
+            Job not provided to Cypress Dashboard
         </Box>
     );
 }

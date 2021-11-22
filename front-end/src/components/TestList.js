@@ -4,25 +4,13 @@ import {useParams} from "react-router-dom";
 
 export default function TestList() {
     const [testResults, setTestResults] = useState({});
-    const [error, setError] = useState(false);
     const { jobUuid } = useParams();
 
-    console.log(error)
-
     useEffect(() => {
-        async function fetchTestResults() {
-            try {
-                const res = await fetch(`/${jobUuid}/test-list/`)
-                const result = await res.json()
-                setTestResults(result)
-                setError(false)
-            } catch (err) {
-                console.error(err)
-                setError(true)
-            }
-        }
-
-        fetchTestResults()
+        fetch(`/${jobUuid}/test-list/`)
+            .then(x => x.json())
+            .then(x => setTestResults(x))
+            .catch(e => console.error(e));
     }, [jobUuid])
 
     return(

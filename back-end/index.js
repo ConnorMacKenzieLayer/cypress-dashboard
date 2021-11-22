@@ -9,30 +9,31 @@ const FRONT_END_PATH = path.join(__dirname, '..', 'front-end', 'build')
 
 app.use(express.json());
 
-app.use(express.static(FRONT_END_PATH));
+app.use("/video", express.static(__dirname + "/videos"))
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
 app.get('/:jobUuid/test-list', function(req, res, next){
-    let formattedResults = {}
-    let jobUuid = req.params.jobUuid
-    console.log("Before")
+    let formattedResults = {};
+    let jobUuid = req.params.jobUuid;
+
     copyDirectory(jobUuid).then(() => {
-        console.log("Directory should be long done by now")
         let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
         formattedResults = formatTestSuiteResults(testSuiteResults)
-    }).finally(() => res.send(formattedResults))
+    }).finally(() => res.send(formattedResults));
 });
 
 app.get('/:jobUuid/test-details/:testName', function(req, res, next){
-    let formattedResults = {}
-    let jobUuid = req.params.jobUuid
+    let formattedResults = {};
+    let jobUuid = req.params.jobUuid;
+
     copyDirectory(jobUuid).then(() => {
         let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
         formattedResults = formatTestResults(testSuiteResults, req.params.testName)
-    }).finally(() => res.send(formattedResults))
+    }).finally(() => res.send(formattedResults));
+
 });
 
 app.get('*', function(req, res) {
@@ -148,9 +149,10 @@ function formatTestResults(testSuiteResults, testSuiteName) {
     let results = {
         duration: 0.0,
         failures: 0,
+        failedTests: [],
         name: "",
         passed: 0,
-        tests: []
+        passedTests: []
     }
 
     let testSuite;
@@ -176,11 +178,18 @@ function formatTestResults(testSuiteResults, testSuiteName) {
         let passed = tests - failures;
         let duration = parseFloat(testSuite["time"]);
 
+        testSuite["testcase"].forEach(test => {
+           if(test.failure){
+               results.failedTests.push(test);
+           } else {
+               results.passedTests.push(test);
+           }
+        });
+
         results.name = name;
         results.duration += duration;
         results.failures += failures;
         results.passed += passed;
-        results.tests = testSuite["testcase"]
     }
 
     return results;
