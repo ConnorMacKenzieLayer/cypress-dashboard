@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Box, Button, Collapse, Typography} from "@mui/material";
 
-export default function TestResults({test}) {
+export default function SuiteResults({test}) {
     const [collapseLogs, setCollapseLogs] = useState(false)
 
     return(

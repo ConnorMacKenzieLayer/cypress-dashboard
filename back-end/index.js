@@ -2,7 +2,6 @@ const path = require('path');
 const express = require('express');
 const Client = require('ssh2-sftp-client');
 const fs = require('fs');
-const parser = require('xml2json');
 const app = express()
 const port = 3001
 const FRONT_END_PATH = path.join(__dirname, '..', 'front-end', 'build')
@@ -11,29 +10,24 @@ app.use(express.json());
 
 app.use("/video", express.static(__dirname + "/videos"))
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
-
 app.get('/:jobUuid/test-list', function(req, res, next){
     let formattedResults = {};
     let jobUuid = req.params.jobUuid;
 
     copyDirectory(jobUuid).then(() => {
-        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
-        formattedResults = formatTestSuiteResults(testSuiteResults)
+        let testSpecReports = getTestReportResults(`/var/tmp/${jobUuid}/cypress/`)
+        formattedResults = formatTestReportResults(testSpecReports)
     }).finally(() => res.send(formattedResults));
 });
 
-app.get('/:jobUuid/test-details/:testName', function(req, res, next){
+app.get('/:jobUuid/spec-details/:specUuid', function(req, res, next){
     let formattedResults = {};
     let jobUuid = req.params.jobUuid;
 
     copyDirectory(jobUuid).then(() => {
-        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
-        formattedResults = formatTestResults(testSuiteResults, req.params.testName)
+        let testSpecReports = getTestReportResults(`/var/tmp/${jobUuid}/cypress/`)
+        formattedResults = formatTestResults(testSpecReports, req.params.specUuid)
     }).finally(() => res.send(formattedResults));
-
 });
 
 app.get('*', function(req, res) {
@@ -44,11 +38,11 @@ app.listen(port, () => {
     console.log(`Cypress Dashboard listening at http://localhost:${port}`)
 })
 
-function getTestSuiteResults(testResultsDirectory) {
-    let json = [];
+function getTestReportResults(testReportsDirectory) {
+    let testReports = [];
 
-    let testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
-        return testResultsDirectory + file;
+    let testResultsPaths = fs.readdirSync(testReportsDirectory).map(file => {
+        return testReportsDirectory + file;
     });
 
     testResultsPaths.forEach(fileName => {
@@ -59,11 +53,11 @@ function getTestSuiteResults(testResultsDirectory) {
             console.error(err);
             return;
         }
-        let results = parser.toJson(data, {object: true});
-        json.push(results)
+        let report = JSON.parse(data);
+        testReports.push(report)
     });
 
-    return json;
+    return testReports;
 }
 
 async function copyDirectory(jobUuid) {
@@ -78,15 +72,11 @@ async function copyDirectory(jobUuid) {
         }
     });
 
-    console.log("Directory should be made")
     try {
         await sftp.connect({
             host: `${jobUuid}.lan`,
             username: 'root',
             password: 'password'
-        });
-        sftp.on('download', info => {
-            console.log(`Listener: Download ${info.source}`);
         });
         let result = await sftp.downloadDir(src, dest);
         return result;
@@ -98,99 +88,109 @@ async function copyDirectory(jobUuid) {
 
 }
 
-function formatTestSuiteResults(testSuiteResults) {
+function formatTestReportResults(testSpecReports) {
     let results = {
-        totalInfo: {
+        stats: {
             duration: 0.0,
             failures: 0,
-            passed: 0,
+            passes: 0,
         },
-        testSuites: []
+        testSpecs: []
     }
 
-    testSuiteResults.forEach(specResults => {
-        let testSpec = specResults["testsuites"];
+    testSpecReports.forEach(specReport => {
+        let stats = specReport["stats"];
 
-        let totalTests = parseInt(testSpec["tests"]);
-        let totalFailures = parseInt(testSpec["failures"]);
-        let totalPassed = totalTests - totalFailures;
-        let totalDuration = parseFloat(testSpec["time"]);
+        let duration = stats["duration"];
+        let failures = stats["failures"];
+        let passed = stats["passes"];
 
-        results.totalInfo.duration += totalDuration
-        results.totalInfo.failures += totalFailures
-        results.totalInfo.passed += totalPassed
+        results.stats.duration += duration
+        results.stats.failures += failures
+        results.stats.passes += passed
 
-        let testSuites = testSpec["testsuite"]
+        let specResults = specReport["results"]
 
-        testSuites.filter(testSuite =>
-            testSuite["name"] !== "Root Suite"
-        ).forEach( testSuite => {
-            let name = testSuite["name"];
-            let tests = parseInt(testSuite["tests"]);
-            let failures = parseInt(testSuite["failures"]);
-            let passed = tests - failures;
-            let duration = parseFloat(testSuite["time"]);
+        specResults.forEach( result => {
+            let name = result["file"];
+            let uuid = result["uuid"];
 
             let testSuiteResult = {
                 duration: duration,
                 failures: failures,
                 name: name,
-                passed: passed
+                passed: passed,
+                uuid: uuid
             }
 
-            results.testSuites.push(testSuiteResult)
+            results.testSpecs.push(testSuiteResult)
         });
     });
 
     return results;
 }
 
-function formatTestResults(testSuiteResults, testSuiteName) {
+function formatTestResults(testSpecReports, testSpecUuid) {
     let results = {
-        duration: 0.0,
+        file: "",
+        uuid: "",
+        duration: 0,
         failures: 0,
-        failedTests: [],
-        name: "",
-        passed: 0,
-        passedTests: []
+        passes: 0,
+        suites: []
     }
 
-    let testSuite;
+    let specReport;
 
-    testSuiteResults.forEach(specResults => {
-        let testSpec = specResults["testsuites"];
-        let testSuites = testSpec["testsuite"];
+    testSpecReports.forEach(report => {
+        let specResults = report["results"];
 
-        let result = testSuites.find(testSuite =>
-            testSuite["name"] == testSuiteName
+        let result = specResults.find(spec =>
+            spec["uuid"] == testSpecUuid
         );
 
         if(result) {
-            testSuite = result;
+            specReport = report;
             return;
         }
     });
 
-    if(testSuite) {
-        let name = testSuite["name"];
-        let tests = parseInt(testSuite["tests"]);
-        let failures = parseInt(testSuite["failures"]);
-        let passed = tests - failures;
-        let duration = parseFloat(testSuite["time"]);
-
-        testSuite["testcase"].forEach(test => {
-           if(test.failure){
-               results.failedTests.push(test);
-           } else {
-               results.passedTests.push(test);
-           }
-        });
-
-        results.name = name;
-        results.duration += duration;
-        results.failures += failures;
-        results.passed += passed;
+    if(!specReport) {
+        return {};
     }
+
+    let stats = specReport["stats"];
+    results.duration = stats["duration"];
+    results.failures = stats["failures"];
+    results.passes = stats["passes"];
+
+    let specResults = specReport["results"][0];
+    results.file = specResults["file"];
+    results.uuid = specResults["uuid"];
+
+    specResults["suites"].forEach(suite => {
+        let suiteUuid = suite["uuid"];
+        let title = suite["title"];
+        let failures = [];
+        let passes = [];
+
+        suite["tests"].forEach(test => {
+            if(test["fail"]){
+                failures.push(test);
+            } else {
+                passes.push(test);
+            }
+        })
+
+        results.suites.push(
+            {
+                uuid: suiteUuid,
+                title: title,
+                failures: failures,
+                passes: passes
+            }
+        )
+    });
 
     return results;
 }

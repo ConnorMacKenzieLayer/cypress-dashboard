@@ -17,7 +17,7 @@ export default function TestList() {
         <Box margin={5}>
             <Paper>
                 {
-                    (testResults && testResults.totalInfo) ? <>
+                    (testResults && testResults.testSpecs) ? <>
                         <Box margin={3} display="flex" flexDirection="row">
                             <Box display="flex" width="30vw"/>
                             <Box
@@ -38,7 +38,7 @@ export default function TestList() {
                                     }}
                                 >
                                     <Typography style={{color: "#FFFFFF"}} variant="h4">
-                                        Passed: {testResults.totalInfo.passed}
+                                        Passed: {testResults.stats.passes}
                                     </Typography>
                                 </Box>
                                 <Box
@@ -54,17 +54,17 @@ export default function TestList() {
                                     }}
                                 >
                                     <Typography style={{color: "#FFFFFF"}} variant="h4">
-                                        Failures: {testResults.totalInfo.failures}
+                                        Failures: {testResults.stats.failures}
                                     </Typography>
                                 </Box>
                             </Box>
                             <Box display="flex" width="30vw"/>
                         </Box>
                         <Box display="flex" flexDirection="column">
-                            {testResults.testSuites.map(testSuite => {
+                            {testResults.testSpecs.map(testSpec => {
                                 return(
                                     <Box
-                                        key={testSuite.name}
+                                        key={testSpec.uuid}
                                         margin={2}
                                         display="flex"
                                         flexDirection="row"
@@ -74,33 +74,33 @@ export default function TestList() {
                                         sx={{
                                             border: 1,
                                             borderLeft: 10,
-                                            borderColor: testSuite.failures === 0 ? '#258271' : '#C65858'
+                                            borderColor: testSpec.failures === 0 ? '#258271' : '#C65858'
                                         }}
                                     >
                                         <Box display="flex" width="25%">
                                             <Typography>
-                                                {testSuite.name}
+                                                {testSpec.name}
                                             </Typography>
                                         </Box>
                                         <Box display="flex" width="25%" justifyContent="right">
                                             <Typography>
-                                                Passed: {testSuite.passed}
+                                                Passed: {testSpec.passed}
                                             </Typography>
                                         </Box>
                                         <Box display="flex" width="25%" justifyContent="right">
                                             <Typography>
-                                                Failures: {testSuite.failures}
+                                                Failures: {testSpec.failures}
                                             </Typography>
                                         </Box>
                                         <Box display="flex" width="25%" justifyContent="right">
                                             <Button
                                                 variant="outlined"
                                                 style={{
-                                                    color: testSuite.failures === 0 ? '#258271' : '#C65858',
-                                                    borderColor: testSuite.failures === 0 ? '#258271' : '#C65858',
+                                                    color: testSpec.failures === 0 ? '#258271' : '#C65858',
+                                                    borderColor: testSpec.failures === 0 ? '#258271' : '#C65858',
                                                     textTransform: "none"
                                                 }}
-                                                href={`/${jobUuid}/test/${testSuite.name}`}
+                                                href={`/${jobUuid}/spec/${testSpec.uuid}`}
                                             >
                                                 View Details
                                             </Button>
