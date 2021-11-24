@@ -22,7 +22,7 @@ app.get('/:jobUuid/test-list', function(req, res, next){
     let jobUuid = req.params.jobUuid;
 
     copyDirectory(jobUuid).then(() => {
-        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
+        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/results/`)
         formattedResults = formatTestSuiteResults(testSuiteResults)
     }).finally(() => res.send(formattedResults));
 });
@@ -32,7 +32,7 @@ app.get('/:jobUuid/test-details/:testName', function(req, res, next){
     let jobUuid = req.params.jobUuid;
 
     copyDirectory(jobUuid).then(() => {
-        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
+        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/results/`)
         formattedResults = formatTestResults(testSuiteResults, req.params.testName)
     }).finally(() => res.send(formattedResults));
 });
@@ -90,7 +90,11 @@ async function copyDirectory(jobUuid) {
         sftp.on('download', info => {
             console.log(`Listener: Download ${info.source}`);
         });
-        let result = await sftp.downloadDir(src, dest);
+
+        let resultsPromise = sftp.downloadDir(src + "/results", dest + "/results");
+        let videosPromise = sftp.downloadDir(src + "/videos", dest + "/videos");
+
+        let result = await Promise.all([resultsPromise, videosPromise])
         return result;
     } catch (err) {
         console.error(err);
