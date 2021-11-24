@@ -35,7 +35,6 @@ app.get('/:jobUuid/test-details/:testName', function(req, res, next){
         let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/`)
         formattedResults = formatTestResults(testSuiteResults, req.params.testName)
     }).finally(() => res.send(formattedResults));
-
 });
 
 app.get('*', function(req, res) {
@@ -50,19 +49,21 @@ function getTestSuiteResults(testResultsDirectory) {
     let json = [];
 
     let testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
-        return testResultsDirectory + file;
+        if(path.extname(file) === ".xml") {
+            return testResultsDirectory + file;
+        }
     });
 
     testResultsPaths.forEach(fileName => {
         let data;
         try {
             data = fs.readFileSync(fileName)
+            let results = parser.toJson(data, {object: true});
+            json.push(results)
         } catch (err) {
             console.error(err);
             return;
         }
-        let results = parser.toJson(data, {object: true});
-        json.push(results)
     });
 
     return json;
@@ -70,7 +71,7 @@ function getTestSuiteResults(testResultsDirectory) {
 
 async function copyDirectory(jobUuid) {
     const sftp = new Client();
-    let src = 'cypress/results'
+    let src = 'cypress'
     let dest = `/var/tmp/${jobUuid}/cypress`
 
      fs.mkdir(dest, {recursive: true}, (err) => {
@@ -80,7 +81,6 @@ async function copyDirectory(jobUuid) {
         }
     });
 
-    console.log("Directory should be made")
     try {
         await sftp.connect({
             host: `${jobUuid}.lan`,
@@ -189,9 +189,9 @@ function formatTestResults(testSuiteResults, testSuiteName) {
         });
 
         results.name = name;
-        results.duration += duration;
-        results.failures += failures;
-        results.passed += passed;
+        results.duration = duration;
+        results.failures = failures;
+        results.passed = passed;
     }
 
     return results;
