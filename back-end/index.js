@@ -9,6 +9,8 @@ const FRONT_END_PATH = path.join(__dirname, '..', 'front-end', 'build')
 
 app.use(express.json());
 
+app.use(express.static(FRONT_END_PATH));
+
 app.use("/video", express.static(__dirname + "/videos"))
 
 app.get('/', (req, res) => {
