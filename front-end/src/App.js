@@ -4,6 +4,7 @@ import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import TestDetails from "./components/TestDetails";
 import TestList from "./components/TestList";
 import NotFound from "./components/NotFound";
+import Widget from "./components/Widget";
 
 function App() {
   return (
@@ -15,6 +16,9 @@ function App() {
           </Route>
           <Route exact path="/:jobUuid">
             <TestList/>
+          </Route>
+          <Route exact path="/:jobUuid/widget">
+            <Widget/>
           </Route>
           <Route exact path="/:jobUuid/test/:testName">
             <TestDetails/>
