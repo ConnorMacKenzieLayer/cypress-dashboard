@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Box, IconButton, Typography} from "@mui/material";
+import {Box, CardMedia, FormControl, IconButton, InputLabel, MenuItem, Select, Typography} from "@mui/material";
 import {useParams} from "react-router-dom";
 import {ChevronLeft} from "react-feather";
 
@@ -16,6 +16,7 @@ const PassedTestResult = ({test}) => {
                 borderLeft: 10,
                 borderColor: '#258271'
             }}
+            minWidth="30vw"
         >
             <Typography variant="h5">
                 {test.classname}
@@ -32,6 +33,7 @@ const FailedTestResult = ({test}) => {
             padding={3}
             display="flex"
             flexDirection="column"
+            minWidth="30vw"
             sx={{
                 border: 1,
                 borderLeft: 10,
@@ -65,6 +67,8 @@ const FailedTestResult = ({test}) => {
 
 export default function TestDetails() {
     const [testResults, setTestResults] = useState({});
+    const [videoList, setVideoList] = useState([])
+    const [selectedVideo, setSelectedVideo] = useState("")
     const { jobUuid, testName } = useParams();
 
     useEffect(() => {
@@ -74,11 +78,18 @@ export default function TestDetails() {
             .catch(e => console.error(e));
     }, [jobUuid, testName]);
 
+    useEffect(() => {
+        fetch(`/${jobUuid}/videos`)
+            .then(x => x.json())
+            .then(x => setVideoList(x))
+            .catch(e => console.error(e));
+    }, [jobUuid]);
+
     return(
         <Box margin={3}>
             {
                 (testResults && testResults.name) ? <>
-                    <Box margin={3} display="flex" flexDirection="row">
+                    <Box margin={3} display="flex" flexDirection="row" justifyContent="center">
                         <Box>
                             <IconButton
                                 href={`/${jobUuid}`}
@@ -92,9 +103,8 @@ export default function TestDetails() {
                             </Typography>
                         </Box>
                     </Box>
-                    <Box display="flex" flexDirection="Row">
+                    <Box display="flex" flexDirection="Row" justifyContent="center">
                         <Box
-                            margin={3}
                             display="flex"
                             flexDirection="column"
                             maxHeight="500px"
@@ -113,13 +123,40 @@ export default function TestDetails() {
                             })}
                         </Box>
                         <Box
-                            margin={3}
                             display="flex"
                             flexDirection="column"
+                            padding={3}
+                            alignContent="center"
+                            justifyContent="center"
+                            minWidth="33vw"
                         >
-                            <Typography variant="h6">
-                                Videos
-                            </Typography>
+                            <Box>
+                                <FormControl fullWidth>
+                                    <InputLabel>Video</InputLabel>
+                                    <Select
+                                        label="Select Video"
+                                        value={selectedVideo}
+                                        onChange={(e) => {
+                                            setSelectedVideo(e.target.value)
+                                        }}
+                                    >
+                                        {videoList.map(video => {
+                                            return <MenuItem key={video} value={video}> {video}</MenuItem>;
+                                        })}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                            <Box marginTop={3} maxWidth="40vw">
+                                {
+                                    selectedVideo === "" ? null
+                                        : <CardMedia
+                                            component="video"
+                                            controls
+                                            src={`/${jobUuid}/videos/${selectedVideo}`}
+                                        />
+
+                                }
+                            </Box>
                         </Box>
                     </Box>
                 </> : null
