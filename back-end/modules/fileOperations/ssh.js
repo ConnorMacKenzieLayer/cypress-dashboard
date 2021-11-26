@@ -10,6 +10,9 @@ const getIpAdress = async (jobUuid) => {
             runners.forEach(runner => {
                 if(runner["layerfile_path"].includes("cypress")){
                     result = runner["running_pod_ip4"];
+                    if(result !== ""){
+                        return;
+                    }
                 }
             })
         })
