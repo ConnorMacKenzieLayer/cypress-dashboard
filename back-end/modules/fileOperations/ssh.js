@@ -1,4 +1,6 @@
+const Client = require('ssh2-sftp-client');
 const fetch = require("node-fetch");
+const fs = require("fs");
 
 const getIpAdress = async (jobUuid) => {
     fetch(`http://webapplocal.io/pluginapi/job/${jobUuid}/runner_ids`)
