@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 const fs = require("fs");
 
 const getIpAdress = async (jobUuid) => {
-    fetch(`http://webapplocal.io/pluginapi/job/${jobUuid}/runner_ids`)
+    fetch(`http://webapplocal.io/pluginapi/job/${jobUuid}/runner_ips`)
         .then(x => x.json())
         .then(runners => {
             runners.forEach(runner => {
