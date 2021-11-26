@@ -17,7 +17,7 @@ function App() {
           <Route exact path="/:jobUuid">
             <TestList/>
           </Route>
-          <Route exact path="/:jobUuid/widget">
+          <Route exact path="/:jobUuid/views/widget">
             <Widget/>
           </Route>
           <Route exact path="/:jobUuid/test/:testName">
