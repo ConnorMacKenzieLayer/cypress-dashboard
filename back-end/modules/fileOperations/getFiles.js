@@ -1,4 +1,8 @@
-export default function getTestSuiteResults(testResultsDirectory) {
+const fs = require("fs");
+const parser = require("xml2json");
+const path = require("path");
+
+const getTestSuiteResults = (testResultsDirectory) => {
     let json = [];
 
     let testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
@@ -22,10 +26,12 @@ export default function getTestSuiteResults(testResultsDirectory) {
     return json;
 }
 
-export default function listVideos(videoDirectory) {
+const listVideos = (videoDirectory) => {
     return fs.readdirSync(videoDirectory).map(file => {
         if(path.extname(file) === ".mp4") {
             return file;
         }
     });
 }
+
+module.exports = {getTestSuiteResults, listVideos}

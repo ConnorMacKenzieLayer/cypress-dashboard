@@ -1,4 +1,4 @@
-export default function formatTestResults(testSuiteResults, testSuiteName) {
+const formatTestResults = (testSuiteResults, testSuiteName) => {
     let results = {
         duration: 0.0,
         failures: 0,
@@ -48,7 +48,7 @@ export default function formatTestResults(testSuiteResults, testSuiteName) {
     return results;
 }
 
-export default function formatTestSuiteResults(testSuiteResults) {
+const formatTestSuiteResults = (testSuiteResults) => {
     let results = {
         totalInfo: {
             duration: 0.0,
@@ -94,3 +94,5 @@ export default function formatTestSuiteResults(testSuiteResults) {
 
     return results;
 }
+
+module.exports = {formatTestResults, formatTestSuiteResults}

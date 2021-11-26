@@ -1,4 +1,4 @@
-async function getIpAdress(jobUuid) {
+const getIpAdress = async (jobUuid) => {
     fetch(`http://webapplocal.io/pluginapi/job/${jobUuid}/runner_ids`)
         .then(x => x.json())
         .then(runners => {
@@ -14,8 +14,10 @@ async function getIpAdress(jobUuid) {
         });
 }
 
-export default async function copyDirectory(src, dest, jobUuid) {
+const copyDirectory = async (src, dest, jobUuid) => {
     let ip =  await getIpAdress(jobUuid)
+
+    console.log(ip);
 
     if (ip === "") {
         return;
@@ -48,5 +50,6 @@ export default async function copyDirectory(src, dest, jobUuid) {
     } finally {
         await sftp.end();
     }
-
 }
+
+module.exports = { copyDirectory }

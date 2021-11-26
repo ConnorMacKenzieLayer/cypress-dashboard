@@ -1,11 +1,8 @@
 const path = require('path');
 const express = require('express');
-const Client = require('ssh2-sftp-client');
-const fs = require('fs');
-const parser = require('xml2json');
-const { formatTestSuiteResults, formatTestResults } = require("./testResults/formatTestResults");
-const { listVideos, getTestSuiteResults } = require("./fileOperations/getFiles");
-const { copyDirectory } = require("./fileOperations/ssh");
+const { formatTestSuiteResults, formatTestResults } = require("./modules/testResults/formatTestResults.js");
+const { listVideos, getTestSuiteResults } = require("./modules/fileOperations/getFiles.js");
+const { copyDirectory } = require("./modules/fileOperations/ssh.js");
 const app = express()
 const port = 3001
 const FRONT_END_PATH = path.join(__dirname, '..', 'front-end', 'build')
