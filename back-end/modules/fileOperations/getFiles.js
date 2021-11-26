@@ -4,12 +4,18 @@ const path = require("path");
 
 const getTestSuiteResults = (testResultsDirectory) => {
     let json = [];
+    let testResultsPaths;
+    try {
+        testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
+            if(path.extname(file) === ".xml") {
+                return testResultsDirectory + file;
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return json;
+    }
 
-    let testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
-        if(path.extname(file) === ".xml") {
-            return testResultsDirectory + file;
-        }
-    });
 
     testResultsPaths.forEach(fileName => {
         let data;
