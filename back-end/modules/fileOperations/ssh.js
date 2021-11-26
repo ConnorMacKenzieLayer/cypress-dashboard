@@ -1,3 +1,5 @@
+const fetch = require("node-fetch");
+
 const getIpAdress = async (jobUuid) => {
     fetch(`http://webapplocal.io/pluginapi/job/${jobUuid}/runner_ids`)
         .then(x => x.json())
