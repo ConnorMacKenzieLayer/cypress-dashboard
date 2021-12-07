@@ -7,14 +7,14 @@ const getIpAdress = async (jobUuid) => {
     await fetch(`http://webapp.io/pluginapi/job/${jobUuid}/runner_ips`)
         .then(x => x.json())
         .then(runners => {
-            runners.forEach(runner => {
+            let runner = runners.find(runner => {
                 if(runner["layerfile_path"].includes("cypress")){
-                    result = runner["running_pod_ip4"];
-                    if(result !== ""){
-                        return;
-                    }
+                    return runner["running_pod_ip4"] !== "";
                 }
+                return false;
             })
+
+            result = runner ? runner["running_pod_ip4"] : "";
         })
         .catch(e => {
             console.error(e)
