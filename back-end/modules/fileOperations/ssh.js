@@ -26,8 +26,6 @@ const getIpAdress = async (jobUuid) => {
 const copyDirectory = async (src, dest, jobUuid) => {
     let ip =  await getIpAdress(jobUuid)
 
-    console.log(ip);
-
     if (ip === "") {
         return;
     }
@@ -53,11 +51,12 @@ const copyDirectory = async (src, dest, jobUuid) => {
         });
 
         let result = await sftp.downloadDir(src, dest);
+
+        await sftp.end();
+
         return result;
     } catch (err) {
         console.error(err);
-    } finally {
-        await sftp.end();
     }
 }
 
