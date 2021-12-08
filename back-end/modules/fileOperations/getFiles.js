@@ -8,7 +8,7 @@ const getTestSuiteResults = (testResultsDirectory) => {
     try {
         testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
             if(path.extname(file) === ".xml") {
-                return testResultsDirectory + file;
+                return path.join(testResultsDirectory, file);
             }
         });
     } catch (err) {
