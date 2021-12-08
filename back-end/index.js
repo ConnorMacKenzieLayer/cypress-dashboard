@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const fs = require("fs");
 const { formatTestSuiteResults, formatTestResults } = require("./modules/testResults/formatTestResults.js");
 const { listVideos, getTestSuiteResults } = require("./modules/fileOperations/getFiles.js");
 const { copyDirectory } = require("./modules/fileOperations/ssh.js");
@@ -13,43 +14,60 @@ app.use(express.static(FRONT_END_PATH));
 
 app.get('/:jobUuid/videos', function(req, res, next){
     let jobUuid = req.params.jobUuid;
-    let src = 'cypress/videos'
-    let dest = `/var/tmp/${jobUuid}/cypress/videos`
+    let src = 'cypress/videos';
+    let dest = `/var/tmp/${jobUuid}/cypress/videos`;
     let videos;
 
-    copyDirectory(src, dest, jobUuid).then(() => {
+    if (fs.existsSync(dest)) {
         videos = listVideos(dest);
-    }).finally(() => res.send(videos));
+        res.send(videos);
+    } else {
+        copyDirectory(src, dest, jobUuid).then(() => {
+            videos = listVideos(dest);
+        }).finally(() => res.send(videos));
+    }
 });
 
 app.get('/:jobUuid/videos/:videoFile', function(req, res, next){
     let jobUuid = req.params.jobUuid;
-    let file = `/var/tmp/${jobUuid}/cypress/videos/${req.params.videoFile}`
+    let file = `/var/tmp/${jobUuid}/cypress/videos/${req.params.videoFile}`;
     res.sendFile(file);
 });
 
 app.get('/:jobUuid/test-list', function(req, res, next){
     let formattedResults = {};
     let jobUuid = req.params.jobUuid;
-    let src = 'cypress/results'
-    let dest = `/var/tmp/${jobUuid}/cypress/results`
+    let src = 'cypress/results';
+    let dest = `/var/tmp/${jobUuid}/cypress/results`;
 
-    copyDirectory(src, dest, jobUuid).then(() => {
-        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/results/`)
-        formattedResults = formatTestSuiteResults(testSuiteResults)
-    }).finally(() => res.send(formattedResults));
+    if (fs.existsSync(dest)) {
+        let testSuiteResults = getTestSuiteResults(dest);
+        formattedResults = formatTestSuiteResults(testSuiteResults);
+        res.send(formattedResults);
+    } else {
+        copyDirectory(src, dest, jobUuid).then(() => {
+            let testSuiteResults = getTestSuiteResults(dest);
+            formattedResults = formatTestSuiteResults(testSuiteResults);
+        }).finally(() => res.send(formattedResults));
+    }
 });
 
 app.get('/:jobUuid/test-details/:testName', function(req, res, next){
     let formattedResults = {};
     let jobUuid = req.params.jobUuid;
-    let src = 'cypress/results'
-    let dest = `/var/tmp/${jobUuid}/cypress/results`
+    let src = 'cypress/results';
+    let dest = `/var/tmp/${jobUuid}/cypress/results`;
 
-    copyDirectory(src, dest, jobUuid).then(() => {
-        let testSuiteResults = getTestSuiteResults(`/var/tmp/${jobUuid}/cypress/results/`)
+    if (fs.existsSync(dest)) {
+        let testSuiteResults = getTestSuiteResults(dest)
         formattedResults = formatTestResults(testSuiteResults, req.params.testName)
-    }).finally(() => res.send(formattedResults));
+        res.send(formattedResults)
+    } else {
+        copyDirectory(src, dest, jobUuid).then(() => {
+            let testSuiteResults = getTestSuiteResults(dest);
+            formattedResults = formatTestResults(testSuiteResults, req.params.testName);
+        }).finally(() => res.send(formattedResults));
+    }
 });
 
 app.get('*', function(req, res) {
