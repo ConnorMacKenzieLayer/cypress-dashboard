@@ -9,7 +9,7 @@ const getIpAdress = async (jobUuid) => {
         .then(runners => {
             let runner = runners.find(runner => {
                 if(runner["layerfile_path"].includes("cypress")){
-                    return runner["running_pod_ip4"] !== "";
+                    return runner["running_pod_ip4"] !== "" && runner["Status"] === 'RUNNING';
                 }
                 return false;
             })
@@ -27,6 +27,7 @@ const copyDirectory = async (src, dest, jobUuid) => {
     let ip =  await getIpAdress(jobUuid)
 
     if (ip === "") {
+        console.warn("No IP found");
         return;
     }
 
