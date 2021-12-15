@@ -16,28 +16,14 @@ const getIpAdress = async (jobUuid) => {
 
             result = runner ? runner["running_pod_ip4"] : "";
         })
-        .catch(e => {
-            console.error(e)
-        });
-
     return result;
-}
-
-const deleteDirectory = (dest) => {
-    try {
-        fs.rmdirSync(dest, {recursive: true});
-    } catch (e) {
-        console.error(e);
-    }
-    fs.rmdirSync(dest, {recursive: true});
 }
 
 const copyDirectory = async (src, dest, jobUuid) => {
     let ip =  await getIpAdress(jobUuid)
 
     if (ip === "") {
-        console.warn("No IP found");
-        return;
+        throw Error("No IP address found");
     }
 
     const sftp = new Client();
@@ -61,8 +47,8 @@ const copyDirectory = async (src, dest, jobUuid) => {
 
         return result;
     } catch (err) {
-        console.error(err);
-        deleteDirectory(dest);
+        fs.rmdirSync(dest, {recursive: true});
+        throw err;
     }
 }
 
