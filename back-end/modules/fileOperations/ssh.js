@@ -23,6 +23,15 @@ const getIpAdress = async (jobUuid) => {
     return result;
 }
 
+const deleteDirectory = (dest) => {
+    try {
+        fs.rmdirSync(dest, {recursive: true});
+    } catch (e) {
+        console.error(e);
+    }
+    fs.rmdirSync(dest, {recursive: true});
+}
+
 const copyDirectory = async (src, dest, jobUuid) => {
     let ip =  await getIpAdress(jobUuid)
 
@@ -33,12 +42,7 @@ const copyDirectory = async (src, dest, jobUuid) => {
 
     const sftp = new Client();
 
-    fs.mkdir(dest, {recursive: true}, (err) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-    });
+    fs.mkdirSync(dest, {recursive: true});
 
     try {
         await sftp.connect({
@@ -58,6 +62,7 @@ const copyDirectory = async (src, dest, jobUuid) => {
         return result;
     } catch (err) {
         console.error(err);
+        deleteDirectory(dest);
     }
 }
 
