@@ -28,8 +28,6 @@ const copyDirectory = async (src, dest, jobUuid) => {
 
     const sftp = new Client();
 
-    fs.mkdirSync(dest, {recursive: true});
-
     try {
         await sftp.connect({
             host: ip,
@@ -41,13 +39,14 @@ const copyDirectory = async (src, dest, jobUuid) => {
             console.log(`Listener: Download ${info.source}`);
         });
 
+        fs.mkdirSync(dest, {recursive: true});
         let result = await sftp.downloadDir(src, dest);
 
         await sftp.end();
 
         return result;
     } catch (err) {
-        fs.rmdirSync(dest, {recursive: true});
+        fs.rmSync(dest, {recursive: true});
         throw err;
     }
 }
