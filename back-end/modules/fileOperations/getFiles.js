@@ -4,29 +4,16 @@ const path = require("path");
 
 const getTestSuiteResults = (testResultsDirectory) => {
     let json = [];
-    let testResultsPaths;
-    try {
-        testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
-            if(path.extname(file) === ".xml") {
-                return path.join(testResultsDirectory, file);
-            }
-        });
-    } catch (err) {
-        console.error(err);
-        return json;
-    }
-
+    let testResultsPaths = fs.readdirSync(testResultsDirectory).map(file => {
+        if(path.extname(file) === ".xml") {
+            return path.join(testResultsDirectory, file);
+        }
+    });
 
     testResultsPaths.forEach(fileName => {
-        let data;
-        try {
-            data = fs.readFileSync(fileName)
-            let results = parser.toJson(data, {object: true});
-            json.push(results)
-        } catch (err) {
-            console.error(err);
-            return;
-        }
+        let data = fs.readFileSync(fileName)
+        let results = parser.toJson(data, {object: true});
+        json.push(results)
     });
 
     return json;

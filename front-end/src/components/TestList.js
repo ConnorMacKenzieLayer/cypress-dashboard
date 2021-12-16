@@ -4,14 +4,36 @@ import {useParams} from "react-router-dom";
 
 export default function TestList() {
     const [testResults, setTestResults] = useState({});
+    const [error, setError] = useState(false);
     const { jobUuid } = useParams();
 
     useEffect(() => {
         fetch(`/${jobUuid}/test-list/`)
             .then(x => x.json())
             .then(x => setTestResults(x))
-            .catch(e => console.error(e));
+            .catch(e => {
+                console.error(e);
+                setError(true);
+            });
     }, [jobUuid])
+
+    if(error) {
+        return <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            height="100vh"
+        >
+            <Typography variant="h4">
+                An error has occurred loading Cypress test results.
+            </Typography>
+            <br/>
+            <Typography>
+                Ensure VM containing test results is in a running state.
+            </Typography>
+        </Box>;
+    }
 
     return(
         <Box margin={3}>
